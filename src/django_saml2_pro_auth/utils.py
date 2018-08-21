@@ -80,10 +80,12 @@ def prepare_django_request(request):
     return results
 
 
+ATTR_MAPPER = None
 def apply_attribute_map(attr_map, data):
-    soup = BeautifulSoup(attr_map, 'xml')
-    mapper = dict([(e.get('name'), e.get('id')) for e in soup.find_all('Attribute')])
+    if ATTR_MAPPER is None:
+        soup = BeautifulSoup(attr_map, 'xml')
+        ATTR_MAPPER = dict([(e.get('name'), e.get('id')) for e in soup.find_all('Attribute')])
     res = {}
     for k, v in data.items():
-        res[mapper[k]] = res.get(mapper[k], []) + v
+        res[ATTR_MAPPER[k]] = res.get(ATTR_MAPPER[k], []) + v
     return res
