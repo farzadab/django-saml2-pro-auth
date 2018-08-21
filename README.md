@@ -16,21 +16,6 @@ You'll want to find the equivalent on your OS of choice.
 
 ## Configuration
 
-### Installation
-
-**Python 2**
-
-```bash
-  pip install django-saml2-pro-auth
-```
-
-**Python 3**
-
-```bash
-  pip3 install django-saml2-pro-auth
-```
-
-
 ### settings.py
 
 Here is an example full configuration. Scroll down to read about each option
