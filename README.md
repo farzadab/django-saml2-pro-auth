@@ -1,10 +1,10 @@
-# django-saml2-pro-auth
+# Modified django-saml2-pro-auth
 A modified version of SAML2 authentication backend for Django. You probably want to check out the original repo from the [MindPointGroup](https://github.com/MindPointGroup/django-saml2-pro-auth).
 
 
 ## Installation
 
-`pip install django-saml2-pro-auth`
+`pip install git+https://github.com/farzadab/django-saml2-pro-auth`
 
 ### Prerequisites
 
@@ -53,6 +53,7 @@ SAML_USERS_MAP = [{
 
 }]
 
+SAML_POST_LOGIN_HOOK = None
 
 SAML_PROVIDERS = [{
     "MyProvider": {
@@ -89,6 +90,8 @@ SAML_PROVIDERS = [{
                 "url": "https://kdkdfjdfsklj.my.MyProvider.com/applogout",
                 "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
             },
+            # attribute mapper: if the attribute names are jumbled, chances are you need to specify an attribute mapper
+            "attributeMap": None,
             "x509cert": open(os.path.join(BASE_DIR,'certs/MyProvider.crt'), 'r').read(),
         },
         "organization": {
@@ -242,7 +245,11 @@ SAML_USERS_MAP = [{
 }]
 ```
 
-**SAML_PROVIDERS:** This is exactly the same spec as OneLogin's [python-saml and python3-saml packages](https://github.com/onelogin/python3-saml#settings). The big difference is here you supply a list of dicts where the top most key(s) must map 1:1 to the top most keys in `SAML_USERS_MAP`. Also, this package allows you to ref the cert/key files via `open()` calls. This is to allow those of you with multiple external customers to login to your platform with any N number of IdPs.
+**SAML_POST_LOGIN_HOOK (optional):** This function is called after each time a user logs in.
+
+**SAML_PROVIDERS:** This is exactly the same spec as OneLogin's [python-saml and python3-saml packages](https://github.com/onelogin/python3-saml#settings) with the addition of `attributeMap`. The big difference is here you supply a list of dicts where the top most key(s) must map 1:1 to the top most keys in `SAML_USERS_MAP`. Also, this package allows you to ref the cert/key files via `open()` calls. This is to allow those of you with multiple external customers to login to your platform with any N number of IdPs.
+
+**attributeMap (optional):** You probably don't need it but if the attribute names are jumbled, chances are this can help. It should be a string containing a contents of a `.xml` file.
 
 
 ## Routes
