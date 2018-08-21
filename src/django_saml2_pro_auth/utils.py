@@ -1,4 +1,5 @@
 from django.conf import settings
+from bs4 import BeautifulSoup
 
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.utils import OneLogin_Saml2_Utils 
@@ -77,3 +78,12 @@ def prepare_django_request(request):
         results['server_port'] = server_port
 
     return results
+
+
+def apply_attribute_map(attr_map, data):
+    soup = BeautifulSoup(attr_map, 'xml')
+    mapper = dict([(e.get('name'), e.get('id')) for e in soup.find_all('Attribute')])
+    res = {}
+    for k, v in data.items():
+        res[mapper[k]] = res.get(mapper[k], []) + v
+    return res

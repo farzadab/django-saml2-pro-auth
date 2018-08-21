@@ -2,7 +2,7 @@ from django.conf import settings
 from django.http import (HttpResponse, HttpResponseRedirect,
                          HttpResponseServerError)
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate, login, REDIRECT_FIELD_NAME
+from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
 
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.settings import OneLogin_Saml2_Settings
@@ -49,7 +49,29 @@ def saml_login(request):
             else:
                 return HttpResponseRedirect(OneLogin_Saml2_Utils.get_self_url(req))
         else:
-            raise SAMLError('ERRORS FOUND IN SAML REQUEST: %s' % errors)
+            raise SAMLError(
+                'ERRORS FOUND IN SAML REQUEST: %s, REASON: %s' % (
+                    errors,
+                    auth.get_last_error_reason()
+                )
+            )
+    elif 'slo' in req['get_data']:
+        logout(request)
+        return HttpResponseRedirect(auth.logout())
+    elif 'sls' in req['get_data']:
+        logout(request)
+        delete_session_callback = lambda: request.session.clear()
+        url = auth.process_slo(delete_session_cb=delete_session_callback)
+        errors = auth.get_errors()
+        if not errors:
+            return HttpResponseRedirect(url)
+        else:
+            raise SAMLError(
+                'ERRORS FOUND IN SAML LOGOUT REQUEST: %s, REASON: %s' % (
+                    errors,
+                    auth.get_last_error_reason()
+                )
+            )
     elif 'provider' in req['get_data']:
         # SP Initiated
         if hasattr(settings, 'SAML_REDIRECT'):

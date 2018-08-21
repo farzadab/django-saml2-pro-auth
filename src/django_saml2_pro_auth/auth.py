@@ -7,7 +7,7 @@ from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from six import iteritems
 
-from .utils import SAMLError, SAMLSettingsError, prepare_django_request
+from .utils import SAMLError, SAMLSettingsError, prepare_django_request, apply_attribute_map
 
 
 def get_provider_index(request):
@@ -61,14 +61,21 @@ def get_clean_map(user_map, saml_data):
 class Backend(object): # pragma: no cover
 
     def authenticate(self, request):
-        if not request.session['samlSessionIndex'] or not request.session['samlUserdata']:
+        if not request.session['samlSessionIndex']:
             return None
+        if not request.session['samlUserdata']:
+            raise SAMLError('Got empty SAML response')
 
         User = get_user_model()
         provider, provider_index = get_provider_index(request)
         user_map = settings.SAML_USERS_MAP[provider_index][provider]
+        user_data = request.session['samlUserdata']
 
-        final_map = get_clean_map(user_map, request.session['samlUserdata'])
+        attribute_map = settings.SAML_PROVIDERS[provider_index][provider]['idp'].get('attributeMap', None)
+        if attribute_map:
+            user_data = apply_attribute_map(attribute_map, user_data)
+
+        final_map = get_clean_map(user_map, user_data)
 
         lookup_attribute = getattr(settings, "SAML_USERS_LOOKUP_ATTRIBUTE", "username")
         sync_attributes = getattr(settings, "SAML_USERS_SYNC_ATTRIBUTES", False)
@@ -81,6 +88,11 @@ class Backend(object): # pragma: no cover
             user, _ = User.objects.update_or_create(defaults=final_map, **lookup_map)
         else:
             user, _ = User.objects.get_or_create(defaults=final_map, **lookup_map)
+        
+        post_login_hook = getattr(settings, "SAML_POST_LOGIN_HOOK", None)
+
+        if post_login_hook and callable(post_login_hook):
+            post_login_hook(user, user_data)
 
         return user
 

@@ -5,7 +5,8 @@ from django.conf import settings
 
 import onelogin
 
-from django_saml2_pro_auth.utils import get_provider_config, init_saml_auth, prepare_django_request
+import urllib.request
+from django_saml2_pro_auth.utils import get_provider_config, init_saml_auth, prepare_django_request, apply_attribute_map
 
 from .data.configs import MOCK_SAML2_CONFIG
 from django_saml2_pro_auth.utils import SAMLError, SAMLSettingsError
@@ -131,3 +132,15 @@ class TestUtils(TestCase):
         self.assertEqual(req['https'], 'on')
         self.assertEqual(req['script_name'], '/sso/saml/')
         self.assertEqual(req['http_host'], 'example.com')
+
+    def test_apply_attribute_map(self):
+        attr_map = urllib.urlopen('https://confluence.it.ubc.ca/download/attachments/126882414/attribute-map.xml?version=1&modificationDate=1530660054000&api=v2').read()
+        data = {
+            'urn:oid:2.5.4.42': ['givenName'],
+            'urn:oid:2.16.840.1.113719.1.1.4.1.25': ['groupMembership'],
+            'urn:oid:2.5.4.4': ['sn'],
+            'urn:oid:0.9.2342.19200300.100.1.1': ['uid']
+        }
+        fixed = apply_attribute_map(attr_map, data)
+        for k, v in fixed.items():
+            self.assertEqual(k, v[0])

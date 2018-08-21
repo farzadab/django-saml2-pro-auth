@@ -49,7 +49,8 @@ if __name__ == "__main__":
         },
         install_requires=[
             'python3-saml',
-            'six'
+            'six',
+            'beautifulsoup4',
         ],
         tests_require=[
             'django',
