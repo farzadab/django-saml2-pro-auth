@@ -82,6 +82,7 @@ def prepare_django_request(request):
 
 ATTR_MAPPER = None
 def apply_attribute_map(attr_map, data):
+    global ATTR_MAPPER
     if ATTR_MAPPER is None:
         soup = BeautifulSoup(attr_map, 'xml')
         ATTR_MAPPER = dict([(e.get('name'), e.get('id')) for e in soup.find_all('Attribute')])

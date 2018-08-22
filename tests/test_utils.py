@@ -134,7 +134,7 @@ class TestUtils(TestCase):
         self.assertEqual(req['http_host'], 'example.com')
 
     def test_apply_attribute_map(self):
-        attr_map = urllib.urlopen('https://confluence.it.ubc.ca/download/attachments/126882414/attribute-map.xml?version=1&modificationDate=1530660054000&api=v2').read()
+        attr_map = urllib.request.urlopen('https://confluence.it.ubc.ca/download/attachments/126882414/attribute-map.xml?version=1&modificationDate=1530660054000&api=v2').read()
         data = {
             'urn:oid:2.5.4.42': ['givenName'],
             'urn:oid:2.16.840.1.113719.1.1.4.1.25': ['groupMembership'],
