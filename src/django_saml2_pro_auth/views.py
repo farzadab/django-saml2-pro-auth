@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, \
-                        HttpResponseServerError, HttpResponseBadRequest, \
-                        Httpu 
+                        HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
 
