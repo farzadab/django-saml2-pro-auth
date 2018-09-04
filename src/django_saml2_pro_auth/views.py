@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.http import (HttpResponse, HttpResponseRedirect,
-                         HttpResponseServerError)
+from django.http import HttpResponse, HttpResponseRedirect, \
+                        HttpResponseServerError, HttpResponseBadRequest, \
+                        Httpu 
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
 
@@ -30,9 +31,10 @@ def saml_login(request):
 
         auth.process_response(request_id=request_id)
         errors = auth.get_errors()
-        not_auth_warn = not auth.is_authenticated()
 
-        if not errors:
+        if not auth.is_authenticated():
+            return HttpResponse('Unathorized', status=401)
+        elif not errors:
             if 'AuthNRequestID' in request.session:
                 del request.session['AuthNRequestID']
 
@@ -49,7 +51,7 @@ def saml_login(request):
             else:
                 return HttpResponseRedirect(OneLogin_Saml2_Utils.get_self_url(req))
         else:
-            raise SAMLError(
+            return HttpResponseBadRequest(
                 'ERRORS FOUND IN SAML REQUEST: %s, REASON: %s' % (
                     errors,
                     auth.get_last_error_reason()
@@ -66,7 +68,7 @@ def saml_login(request):
         if not errors:
             return HttpResponseRedirect(url)
         else:
-            raise SAMLError(
+            return HttpResponseBadRequest(
                 'ERRORS FOUND IN SAML LOGOUT REQUEST: %s, REASON: %s' % (
                     errors,
                     auth.get_last_error_reason()
