@@ -7,7 +7,8 @@ from onelogin.saml2.auth import OneLogin_Saml2_Auth
 
 from six import iteritems
 
-from .utils import SAMLError, SAMLSettingsError, prepare_django_request, apply_attribute_map
+from .utils import SAMLError, SAMLSettingsError, SAMLDataError, \
+                   prepare_django_request, apply_attribute_map
 
 
 def get_provider_index(request):
@@ -40,10 +41,13 @@ def get_clean_map(user_map, saml_data):
             if type(usr_v) is dict:
                 if 'default' in usr_v.keys():
                     raise SAMLSettingsError('A default value is set for key %s in SAML_USER_MAP while SAML_USERS_STRICT_MAPPING is activated' % usr_k)
+                if usr_v['key'] not in saml_data:
+                    raise SAMLDataError(usr_v.get('error_msg', 'Incomplete data: %s not found' % usr_v['key']))
                 if 'index' in usr_v.keys():
                     final_map[usr_k] = saml_data[usr_v['key']][usr_v['index']]
                 else:
                     final_map[usr_k] = saml_data[usr_v['key']]
+
             else:
                 final_map[usr_k] = saml_data[user_map[usr_k]]
         else:

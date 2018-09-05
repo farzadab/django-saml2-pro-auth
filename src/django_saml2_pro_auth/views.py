@@ -3,12 +3,13 @@ from django.http import HttpResponse, HttpResponseRedirect, \
                         HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
+from django.shortcuts import render
 
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.settings import OneLogin_Saml2_Settings
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
-from .utils import SAMLError, SAMLSettingsError
+from .utils import SAMLError, SAMLSettingsError, SAMLDataError
 from .utils import (get_provider_config,
                     init_saml_auth, prepare_django_request)
 
@@ -41,7 +42,10 @@ def saml_login(request):
             request.session['samlNameId'] = auth.get_nameid()
             request.session['samlSessionIndex'] = auth.get_session_index()
             attributes = request.session['samlUserdata'].items()
-            user = authenticate(request=request)
+            try:
+                user = authenticate(request=request)
+            except SAMLDataError as e:
+                return render(request, 'django_saml2_pro_auth/error.html', {'message': e.args[0]})
             login(request, user)
             if hasattr(settings, 'SAML_REDIRECT'):
                 return HttpResponseRedirect(settings.SAML_REDIRECT)

@@ -11,6 +11,9 @@ class SAMLError(Exception):
 class SAMLSettingsError(Exception):
     pass
 
+class SAMLDataError(Exception):
+    pass
+
 
 def get_provider_config(req):
     final_cfg = {}
