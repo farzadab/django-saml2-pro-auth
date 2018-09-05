@@ -68,7 +68,8 @@ class Backend(object): # pragma: no cover
         if not request.session['samlSessionIndex']:
             return None
         if not request.session['samlUserdata']:
-            raise SAMLError('Got empty SAML response')
+            # raise SAMLError('Got empty SAML response')
+            request.session['samlUserData'] = {}
 
         User = get_user_model()
         provider, provider_index = get_provider_index(request)
